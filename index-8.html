@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Emoji IO - Şimdi Yayında!</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Babel for JSX support in browser -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind Configuration -->
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              display: ['Fredoka', 'sans-serif'],
+            },
+            colors: {
+              brand: {
+                yellow: '#FFD93D',
+                dark: '#1A1A2E',
+                purple: '#4F46E5',
+                accent: '#FF6B6B'
+              }
+            },
+            animation: {
+              'blob': 'blob 7s infinite',
+              'float-slow': 'float 6s ease-in-out infinite',
+              'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              'fade-in-up': 'fadeInUp 0.8s ease-out forwards',
+            },
+            keyframes: {
+              blob: {
+                '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                '100%': { transform: 'translate(0px, 0px) scale(1)' },
+              },
+              float: {
+                '0%': { transform: 'translateY(0px)' },
+                '50%': { transform: 'translateY(-20px)' },
+                '100%': { transform: 'translateY(0px)' },
+              },
+              fadeInUp: {
+                '0%': { opacity: '0', transform: 'translateY(20px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              }
+            }
+          }
+        }
+      }
+    </script>
+
+    <!-- Custom CSS -->
+    <style>
+      body {
+        background-color: #1A1A2E;
+        color: #F3F4F6;
+        margin: 0;
+        overflow-x: hidden;
+      }
+      .emoji-float {
+        animation: float 6s ease-in-out infinite;
+      }
+      /* Custom Scrollbar */
+      ::-webkit-scrollbar {
+        width: 10px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #111827;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #374151;
+        border-radius: 5px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #4F46E5;
+      }
+      .shake-animation {
+        animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+      }
+      @keyframes shake {
+        10%, 90% { transform: translate3d(-1px, 0, 0); }
+        20%, 80% { transform: translate3d(2px, 0, 0); }
+        30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+        40%, 60% { transform: translate3d(4px, 0, 0); }
+      }
+    </style>
+
+    <!-- Import Map (Fixed Versions) -->
+    <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@18.2.0",
+        "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+        "lucide-react": "https://esm.sh/lucide-react@0.263.1?deps=react@18.2.0"
+      }
+    }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <!-- MAIN APP SCRIPT -->
+    <script type="text/babel" data-type="module" data-presets="react">
+      import React, { useState, useEffect, useRef } from 'react';
+      import { createRoot } from 'react-dom/client';
+      import { 
+        Gamepad2, ArrowRight, Sparkles, Lightbulb, Key, Trophy, CheckCircle2, 
+        WifiOff, Wifi, User, Users, Globe, Gift, RotateCcw, Languages, Zap, 
+        Layout, Check, X, Shield, ScrollText, Youtube, ThumbsUp, ThumbsDown,
+        Download, ShoppingBag, Smartphone
+      } from 'lucide-react';
+
+      // --- NAVBAR COMPONENT ---
+      const Navbar = () => {
+        const [isScrolled, setIsScrolled] = useState(false);
+        const [activeSection, setActiveSection] = useState('game');
+
+        const navLinks = [
+          { name: 'Oyun', id: 'game' },
+          { name: 'Modlar', id: 'modes' },
+          { name: 'Özellikler', id: 'features' },
+          { name: 'Fiyat', id: 'pricing' },
+        ];
+
+        useEffect(() => {
+          const handleScroll = () => {
+            setIsScrolled(window.scrollY > 20);
+            const scrollPosition = window.scrollY + 150;
+
+            if (window.scrollY < 100) {
+              setActiveSection('game');
+              return;
+            }
+
+            for (const link of navLinks) {
+              const element = document.getElementById(link.id);
+              if (element) {
+                const { offsetTop, offsetHeight } = element;
+                if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
+                  setActiveSection(link.id);
+                }
+              }
+            }
+          };
+
+          window.addEventListener('scroll', handleScroll);
+          return () => window.removeEventListener('scroll', handleScroll);
+        }, []);
+
+        const scrollToSection = (id) => {
+          const element = document.getElementById(id);
+          if (element) element.scrollIntoView({ behavior: 'smooth' });
+        };
+
+        return (
+          <nav className={`fixed w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-gray-900/90 backdrop-blur-md shadow-[0_4px_30px_rgba(0,0,0,0.5)] py-3 border-b border-gray-800/50' : 'bg-transparent py-5'}`}>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex flex-col md:flex-row justify-between items-center gap-4 md:gap-0">
+                <div className="flex items-center space-x-2 group cursor-pointer" onClick={() => scrollToSection('game')}>
+                  <div className="bg-brand-yellow p-2 rounded-xl rotate-3 shadow-[0_0_15px_rgba(255,217,61,0.6)] group-hover:rotate-6 group-hover:shadow-[0_0_25px_rgba(255,217,61,0.8)] transition-all duration-300">
+                    <Gamepad2 className="h-6 w-6 text-brand-dark" />
+                  </div>
+                  <span className="font-display font-bold text-2xl tracking-wide text-white drop-shadow-[0_0_5px_rgba(255,255,255,0.3)] transition-all group-hover:drop-shadow-[0_0_10px_rgba(79,70,229,0.5)]">
+                    Emoji<span className="text-brand-yellow drop-shadow-[0_0_8px_rgba(255,217,61,0.6)]">IO</span>
+                  </span>
+                </div>
+
+                <div className="flex flex-wrap items-center justify-center gap-4 md:gap-8">
+                  {navLinks.map((link) => (
+                    <button
+                      key={link.name}
+                      onClick={() => scrollToSection(link.id)}
+                      className={`transition-all duration-300 font-medium text-sm uppercase tracking-wider bg-transparent border-none cursor-pointer 
+                        ${activeSection === link.id 
+                          ? 'text-brand-yellow drop-shadow-[0_0_15px_rgba(255,217,61,0.8)] scale-110 font-bold' 
+                          : 'text-gray-300 hover:text-brand-yellow hover:drop-shadow-[0_0_5px_rgba(255,217,61,0.5)]'
+                        }`}
+                    >
+                      {link.name}
+                    </button>
+                  ))}
+                  <button onClick={() => scrollToSection('pricing')} className="bg-brand-purple hover:bg-indigo-600 text-white px-4 py-1.5 md:px-6 md:py-2 rounded-full font-bold transition-all transform hover:scale-105 shadow-[0_0_15px_rgba(79,70,229,0.5)] hover:shadow-[0_0_25px_rgba(79,70,229,0.8)] text-sm border border-indigo-400/30 flex items-center gap-2">
+                    <Download size={16} />
+                    Hemen İndir
+                  </button>
+                </div>
+              </div>
+            </div>
+          </nav>
+        );
+      };
+
+      // --- HERO COMPONENT ---
+      const Hero = () => {
+        const [demoInput, setDemoInput] = useState('');
+        const [demoScore, setDemoScore] = useState(1240);
+        const [showToast, setShowToast] = useState(false);
+        const [isCompleted, setIsCompleted] = useState(false);
+        const [hintCount, setHintCount] = useState(3);
+        const [letterCount, setLetterCount] = useState(3);
+        const [activeHint, setActiveHint] = useState(null);
+
+        const TARGET_WORD = "GÜLMEK";
+
+        const scrollToSection = (id) => {
+          const element = document.getElementById(id);
+          if (element) element.scrollIntoView({ behavior: 'smooth' });
+        };
+
+        const handleDemoSubmit = () => {
+          if (isCompleted) return;
+
+          if (demoInput.toLocaleUpperCase('tr-TR') === TARGET_WORD) {
+              setDemoScore(prev => prev + 1);
+              setIsCompleted(true);
+              setShowToast(true);
+              setActiveHint(null);
+              setTimeout(() => setShowToast(false), 3000);
+          } else {
+              const inputContainer = document.getElementById('game-input-container');
+              if (inputContainer) {
+                  inputContainer.classList.add('border-red-500', 'shake-animation');
+                  setTimeout(() => inputContainer.classList.remove('border-red-500', 'shake-animation'), 500);
+              }
+          }
+        };
+
+        const handleUseHint = () => {
+          if (isCompleted || hintCount <= 0) return;
+          setHintCount(prev => prev - 1);
+          setActiveHint("Kahkaha atma eylemi.");
+          setTimeout(() => setActiveHint(null), 4000);
+        };
+
+        const handleRevealLetter = () => {
+          if (isCompleted || letterCount <= 0) return;
+          const currentInput = demoInput.toLocaleUpperCase('tr-TR').split('');
+          const targetInput = TARGET_WORD.split('');
+          let indexToReveal = -1;
+          
+          for (let i = 0; i < targetInput.length; i++) {
+              if (!currentInput[i] || currentInput[i] !== targetInput[i]) {
+                  indexToReveal = i;
+                  break;
+              }
+          }
+
+          if (indexToReveal !== -1) {
+              const newInput = [...currentInput];
+              while (newInput.length < targetInput.length) newInput.push('');
+              newInput[indexToReveal] = targetInput[indexToReveal];
+              setDemoInput(newInput.join('').slice(0, 6));
+              setLetterCount(prev => prev - 1);
+          }
+        };
+
+        return (
+          <div id="game" className="relative pt-36 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-brand-dark to-gray-900 -z-20"></div>
+            <div className="absolute top-0 left-1/4 w-96 h-96 bg-brand-purple/20 rounded-full blur-[120px] -z-10 animate-blob mix-blend-screen"></div>
+            <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-brand-yellow/10 rounded-full blur-[120px] -z-10 animate-blob animation-delay-2000 mix-blend-screen"></div>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-pink-500/10 rounded-full blur-[120px] -z-10 animate-blob animation-delay-4000 mix-blend-screen"></div>
+
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+              <div className="text-center max-w-4xl mx-auto">
+                <div className="inline-flex items-center space-x-2 bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-full px-4 py-2 mb-8 animate-fade-in-up shadow-[0_0_15px_rgba(79,70,229,0.3)]">
+                  <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
+                  <span className="text-sm text-gray-300 font-medium tracking-wide">Şimdi Mağazada Yayında!</span>
+                </div>
+                
+                <h1 className="text-5xl md:text-7xl font-display font-extrabold text-white tracking-tight mb-8 leading-tight drop-shadow-[0_0_25px_rgba(255,255,255,0.2)]">
+                  Emojileri Bil,<br />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-yellow via-orange-400 to-brand-accent drop-shadow-sm">
+                    Eğlenceyi Yakala!
+                  </span>
+                </h1>
+                
+                <p className="mt-6 text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
+                  Emoji IO, emojileri tahmin etmeye dayalı, sade ve eğlenceli bir oyundur. 
+                  İster çevrimiçi ister <span className="text-brand-yellow font-bold drop-shadow-[0_0_8px_rgba(255,217,61,0.5)]">internetsiz</span> oynayın. Her turda rastgele gelen emojilerle zihnini zorla ve arkadaşlarına meydan oku.
+                </p>
+                
+                <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+                  <button onClick={() => scrollToSection('pricing')} className="w-full sm:w-auto px-8 py-4 bg-brand-yellow text-brand-dark rounded-xl font-bold text-lg hover:bg-yellow-400 transition-all transform hover:-translate-y-1 shadow-[0_0_20px_rgba(255,217,61,0.4)] flex items-center justify-center space-x-2 cursor-pointer group">
+                    <Download size={24} className="group-hover:scale-110 transition-transform" />
+                    <span>Hemen İndir</span>
+                  </button>
+                  <button onClick={() => scrollToSection('features')} className="w-full sm:w-auto px-8 py-4 bg-gray-800 text-white border border-gray-700 rounded-xl font-bold text-lg hover:bg-gray-700 hover:border-gray-500 transition-all flex items-center justify-center space-x-2 cursor-pointer shadow-lg">
+                    <span>Detayları İncele</span>
+                  </button>
+                </div>
+
+                <div className="mt-16 bg-gray-900/40 backdrop-blur-md border border-gray-800 rounded-2xl p-6 max-w-3xl mx-auto animate-fade-in-up hover:border-brand-purple/30 transition-colors duration-500">
+                    <h3 className="text-brand-yellow font-display font-bold text-lg mb-6 flex items-center justify-center tracking-widest uppercase">NASIL OYNANIR?</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-left">
+                        {['Emoji gelir', 'Tahmin yazılır', 'İpucu alınır', 'Doğruysa devam!'].map((step, idx) => (
+                          <div key={idx} className="bg-gray-800/50 p-4 rounded-xl border border-gray-700/50 flex flex-col items-center text-center space-y-3 hover:bg-gray-800 transition-colors group hover:shadow-[0_0_15px_rgba(79,70,229,0.15)]">
+                              <div className="w-10 h-10 bg-brand-purple/20 text-brand-purple rounded-full flex items-center justify-center font-display font-bold text-xl border border-brand-purple/30 group-hover:scale-110 transition-transform shadow-[0_0_10px_rgba(79,70,229,0.2)]">{idx + 1}</div>
+                              <span className="text-sm font-medium text-gray-300">{step}</span>
+                          </div>
+                        ))}
+                    </div>
+                </div>
+              </div>
+
+              <div className="mt-20 relative w-full max-w-5xl mx-auto flex justify-center items-center py-10 min-h-[600px]">
+                  <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden">
+                      <div className="emoji-float absolute top-10 left-4 md:left-20 text-6xl md:text-8xl opacity-80 drop-shadow-[0_0_15px_rgba(255,217,61,0.3)]" style={{animationDelay: '0s'}}>🤔</div>
+                      <div className="emoji-float absolute bottom-20 right-4 md:right-20 text-6xl md:text-8xl opacity-80 drop-shadow-[0_0_15px_rgba(255,107,107,0.3)]" style={{animationDelay: '2s'}}>🎉</div>
+                      <div className="emoji-float absolute top-20 right-10 md:right-1/4 text-5xl md:text-7xl opacity-60 blur-[1px]" style={{animationDelay: '1s'}}>🚀</div>
+                      <div className="emoji-float absolute bottom-10 left-10 md:left-1/4 text-5xl md:text-7xl opacity-60 blur-[1px]" style={{animationDelay: '3s'}}>💡</div>
+                  </div>
+                  
+                  <div className="relative z-10 w-full max-w-sm animate-float-slow">
+                      <div className="bg-gray-900/90 backdrop-blur-xl border border-gray-600/50 rounded-3xl p-6 shadow-[0_0_40px_rgba(79,70,229,0.25)] w-full transform rotate-3 hover:rotate-0 transition-all duration-500 flex flex-col hover:shadow-[0_0_60px_rgba(79,70,229,0.5)] hover:scale-[1.02]">
+                          <div className="flex justify-between items-center mb-6 px-1">
+                              <div className="flex space-x-2">
+                                  <div className="bg-gray-800/80 px-3 py-1.5 rounded-lg border border-gray-700/50 flex items-center justify-center text-gray-400 shadow-inner" title="Offline Mod">
+                                      <WifiOff size={16} />
+                                  </div>
+                              </div>
+                              <div className="bg-gray-800/80 px-3 py-1.5 rounded-lg border border-gray-700/50 flex items-center space-x-2 shadow-inner">
+                                  <Trophy size={14} className="text-brand-purple drop-shadow-[0_0_5px_rgba(79,70,229,0.8)]" />
+                                  <span className="text-white font-display font-bold text-lg">{demoScore}</span>
+                              </div>
+                          </div>
+
+                          <div className="flex-1 flex flex-col relative">
+                              <div className="flex justify-between items-center mb-6">
+                                  <button onClick={handleUseHint} disabled={hintCount === 0 || isCompleted} className={`flex items-center space-x-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${hintCount === 0 || isCompleted ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-gray-800 hover:bg-gray-700 text-brand-yellow shadow-[0_0_10px_rgba(255,217,61,0.2)]'}`}>
+                                      <Lightbulb size={14} /><span>İPUCU ({hintCount})</span>
+                                  </button>
+                                  <button onClick={handleRevealLetter} disabled={letterCount === 0 || isCompleted} className={`flex items-center space-x-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${letterCount === 0 || isCompleted ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-gray-800 hover:bg-gray-700 text-blue-400 shadow-[0_0_10px_rgba(96,165,250,0.2)]'}`}>
+                                      <Key size={14} /><span>HARF AÇ ({letterCount})</span>
+                                  </button>
+                              </div>
+
+                              <div className="flex justify-center mb-6 relative">
+                                  <span className="text-8xl drop-shadow-[0_0_20px_rgba(255,255,255,0.2)] animate-bounce" style={{ animationDuration: '3s' }}>😂</span>
+                                  {activeHint && (
+                                      <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-48 bg-white text-brand-dark p-3 rounded-xl shadow-[0_0_20px_rgba(255,255,250,0.4)] z-20 animate-fade-in-up">
+                                          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white transform rotate-45"></div>
+                                          <p className="text-xs font-bold text-center leading-tight">{activeHint}</p>
+                                      </div>
+                                  )}
+                              </div>
+
+                              <div className="flex justify-center space-x-1 mb-6">
+                                  {[...Array(6)].map((_, i) => (
+                                      <div key={i} className={`w-9 h-11 border-b-4 ${isCompleted ? 'border-green-500 bg-green-500/20 text-green-400 shadow-[0_0_10px_rgba(34,197,94,0.3)]' : 'border-gray-500 bg-gray-800/50 text-white'} rounded-sm flex items-center justify-center text-xl font-bold uppercase transition-colors duration-300`}>
+                                          {isCompleted ? TARGET_WORD[i] : (demoInput[i] || '')}
+                                      </div>
+                                  ))}
+                              </div>
+
+                              <div id="game-input-container" className="relative mb-4 border-2 border-transparent rounded-xl transition-all">
+                                  <input type="text" maxLength={6} value={demoInput} onChange={(e) => !isCompleted && setDemoInput(e.target.value)} placeholder={isCompleted ? "TEBRİKLER!" : "Buraya Yaz..."} disabled={isCompleted} className="w-full bg-gray-900/80 border-2 border-dashed border-gray-700 rounded-xl p-3 text-center text-white font-bold tracking-widest uppercase focus:outline-none focus:border-brand-purple focus:shadow-[0_0_15px_rgba(79,70,229,0.3)] transition-all placeholder:text-gray-600 placeholder:normal-case placeholder:font-normal disabled:opacity-50 disabled:cursor-not-allowed" />
+                              </div>
+
+                              <button onClick={handleDemoSubmit} disabled={isCompleted} className={`w-full py-3 rounded-xl font-display font-bold text-lg shadow-lg transition-all transform active:scale-95 ${isCompleted ? 'bg-gray-600 text-gray-300 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600 text-white shadow-[0_0_20px_rgba(34,197,94,0.4)]'}`}>
+                                  {isCompleted ? 'TAMAMLANDI' : 'GÖNDER'}
+                              </button>
+                              <div className="text-center mt-2"><span className="text-[10px] text-gray-500 uppercase tracking-widest opacity-60">Deneme Turu</span></div>
+                          
+                              <div className={`absolute bottom-16 left-0 right-0 flex justify-center pointer-events-none transition-all duration-500 transform ${showToast ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+                                  <div className="bg-white text-brand-dark px-6 py-3 rounded-full shadow-[0_0_25px_rgba(34,197,94,0.5)] flex items-center space-x-2 border-2 border-green-500">
+                                      <CheckCircle2 className="text-green-600 w-6 h-6" /><span className="font-display font-bold text-lg">DOĞRU!</span>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+            </div>
+          </div>
+        );
+      };
+
+      // --- INTERACTIVE SHOWCASE COMPONENT ---
+      const InteractiveShowcase = () => {
+        const textRef = useRef(null);
+        const [position, setPosition] = useState({ x: 0, y: 0 });
+        const [opacity, setOpacity] = useState(0);
+
+        const handleMouseMove = (e) => {
+          if (!textRef.current) return;
+          const rect = textRef.current.getBoundingClientRect();
+          setPosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+          setOpacity(1);
+        };
+
+        return (
+          <div onMouseMove={handleMouseMove} onMouseLeave={() => setOpacity(0)} className="relative w-full py-32 md:py-48 bg-black overflow-hidden flex flex-col items-center justify-center cursor-default group">
+            <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,_rgba(79,70,229,0.1),transparent_70%)]"></div>
+            <div className="relative z-10 text-center px-4">
+              <p className="text-gray-500 font-medium tracking-[0.2em] mb-4 text-sm md:text-base uppercase animate-fade-in-up">Yeni Nesil Deneyim</p>
+              <h2 ref={textRef} className="text-7xl md:text-9xl lg:text-[10rem] font-display font-black tracking-tighter leading-none select-none transition-colors duration-200"
+                style={{
+                  color: 'rgba(255, 255, 255, 0.1)',
+                  backgroundImage: `radial-gradient(circle 250px at ${position.x}px ${position.y}px, #FFD93D 0%, #FF6B6B 30%, #4F46E5 60%, transparent 100%)`,
+                  WebkitBackgroundClip: 'text',
+                  backgroundClip: 'text',
+                  WebkitTextFillColor: opacity === 1 ? 'transparent' : 'rgba(255, 255, 255, 0.1)',
+                }}
+              >EMOJI IO</h2>
+              <p className="mt-8 text-gray-400 max-w-lg mx-auto text-lg leading-relaxed opacity-60 group-hover:opacity-100 transition-opacity duration-500">Işığı takip et. Sınırları zorla.</p>
+            </div>
+            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none mix-blend-overlay"></div>
+          </div>
+        );
+      };
+
+      // --- MODES COMPONENT ---
+      const ModeCard = ({ title, icon: Icon, features, isOnline }) => (
+        <div className="bg-gray-800 rounded-3xl p-8 border border-gray-700 hover:border-brand-purple/50 transition-all hover:shadow-2xl hover:shadow-brand-purple/10 group relative overflow-hidden">
+          <div className={`absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity transform group-hover:scale-110`}><Icon size={120} /></div>
+          <div className="relative z-10">
+              <div className={`inline-flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-bold mb-6 ${isOnline ? 'bg-green-500/20 text-green-400' : 'bg-gray-700 text-gray-300'}`}>
+                  {isOnline ? <Wifi size={14} /> : <WifiOff size={14} />}<span>{isOnline ? 'ONLINE' : 'OFFLINE'}</span>
+              </div>
+              <div className="w-16 h-16 bg-gray-700 rounded-2xl flex items-center justify-center mb-6 text-brand-yellow shadow-inner"><Icon size={32} /></div>
+              <h3 className="text-2xl font-display font-bold text-white mb-4">{title}</h3>
+              <ul className="space-y-3">
+                  {features.map((feature, idx) => (
+                      <li key={idx} className="flex items-start text-gray-400 text-sm"><span className="mr-2 mt-1 w-1.5 h-1.5 bg-brand-purple rounded-full flex-shrink-0"></span>{feature}</li>
+                  ))}
+              </ul>
+          </div>
+        </div>
+      );
+
+      const Modes = () => {
+        const modes = [
+          { title: "Tek Kişilik", icon: User, features: ["Rastgele emojilerle sonsuz oyun", "İpucu alma ve harf açma seçenekleri", "Rahat ve akıcı oynanış", "Kendi rekorunu kırmaya odaklan"], isOnline: false },
+          { title: "Karşılıklı (Tek Cihaz)", icon: Users, features: ["Aynı cihazdan 2 kişilik düello", "Sırayla tahmin yapma heyecanı", "En fazla bilen kazanır", "Arkadaşınla yan yana rekabet"], isOnline: false },
+          { title: "Online Mod", icon: Globe, features: ["Gerçek zamanlı oyuncular", "Bir kişi yazar, diğerleri tahmin eder", "Hızlı ve rekabetçi ortam"], isOnline: true }
+        ];
+
+        return (
+          <div id="modes" className="py-24 bg-gray-900 relative">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="text-center mb-16">
+                <h2 className="text-brand-yellow font-bold tracking-wide uppercase text-sm mb-2">Oyun Mekanikleri</h2>
+                <h3 className="text-3xl md:text-5xl font-display font-bold text-white">Nasıl Oynamak İstersin?</h3>
+                <p className="mt-4 text-gray-400 max-w-2xl mx-auto">İster internetin olmasın, ister arkadaşın yanında olsun, ister dünyanın öbür ucunda... Emoji IO her duruma uygun bir moda sahip.</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">{modes.map((mode, idx) => <ModeCard key={idx} {...mode} />)}</div>
+            </div>
+          </div>
+        );
+      };
+
+      // --- FEATURES COMPONENT ---
+      const FeatureItem = ({ icon: Icon, title, description, animationClass }) => (
+        <div className="flex flex-col items-center text-center p-6 bg-gray-800/50 rounded-2xl border border-gray-700 hover:bg-gray-800 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:shadow-brand-purple/10 group cursor-default">
+          <div className="w-12 h-12 bg-brand-purple/20 text-brand-purple rounded-xl flex items-center justify-center mb-4 transition-all duration-300 group-hover:bg-brand-purple/30 group-hover:scale-110">
+            <Icon size={24} className={`transition-all duration-500 ${animationClass}`} />
+          </div>
+          <h4 className="text-lg font-bold text-white mb-2">{title}</h4>
+          <p className="text-gray-400 text-sm leading-relaxed">{description}</p>
+        </div>
+      );
+
+      const Features = () => {
+        const features = [
+          { icon: Gift, title: "Günlük Ödüller", description: "Her gün oyuna gir, sürpriz küre ödüllerini topla ve koleksiyonunu genişlet.", animationClass: "group-hover:animate-bounce" },
+          { icon: RotateCcw, title: "Skor Sıfırlama", description: "İstediğin zaman skorunu sıfırla ve beyaz bir sayfa açarak yeniden başla.", animationClass: "group-hover:-rotate-180" },
+          { icon: Languages, title: "Dil Seçenekleri", description: "Farklı dillerde kelime dağarcığını geliştir. Global oyuncularla tanış.", animationClass: "group-hover:scale-125 group-hover:rotate-12" },
+          { icon: Layout, title: "Sade Arayüz", description: "Göz yormayan, modern ve kullanıcı dostu tasarım ile oyuna odaklan.", animationClass: "group-hover:skew-x-6 group-hover:scale-110" },
+          { icon: Zap, title: "Akıcı Performans", description: "En eski cihazlarda bile takılmadan çalışan optimize edilmiş altyapı.", animationClass: "group-hover:text-yellow-400 group-hover:fill-current" },
+          { icon: Sparkles, title: "Sürekli Güncel", description: "Düzenli olarak eklenen yeni emojiler ve oyun modları ile eğlence bitmez.", animationClass: "group-hover:animate-spin" }
+        ];
+
+        return (
+          <div id="features" className="py-24 bg-gray-900/50 border-t border-gray-800">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="text-center mb-16">
+                <h2 className="text-3xl md:text-4xl font-display font-bold text-white mb-4">Ekstra Özellikler</h2>
+                <p className="text-gray-400">Oyun keyfini katlayan detaylar</p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">{features.map((feature, idx) => <FeatureItem key={idx} {...feature} />)}</div>
+            </div>
+          </div>
+        );
+      };
+
+      // --- PRICING COMPONENT ---
+      const Pricing = () => {
+        return (
+          <div id="pricing" className="py-24 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-b from-brand-dark to-indigo-950/20 -z-10"></div>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="max-w-3xl mx-auto text-center">
+                  <h2 className="text-3xl md:text-5xl font-display font-bold text-white mb-6">Standart Fiyat</h2>
+                  <p className="text-xl text-gray-300 mb-12">Sadece bir kahve fiyatına.</p>
+                  <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl p-[2px] w-full max-w-md mx-auto transform hover:scale-105 transition-all duration-300 shadow-2xl shadow-indigo-500/20">
+                      <div className="bg-gray-900 rounded-[22px] p-8 h-full flex flex-col items-center">
+                          <div className="flex flex-col items-center justify-center mb-8 mt-2 w-full">
+                              <h3 className="text-5xl md:text-6xl font-display font-extrabold text-white mb-2 tracking-tight">39.90 ₺</h3>
+                              <span className="text-gray-400 text-sm uppercase tracking-wider font-medium">Tek Seferlik Ödeme</span>
+                          </div>
+                          <div className="w-full border-t border-gray-800 my-4"></div>
+                          <ul className="space-y-4 w-full text-left mb-8 px-4 mt-2">
+                              {["Tüm modlar sınırsız erişim", "Günlük küre", "Sade, göz yormayan tasarım", "Reklamsız deneyim", "Ömür boyu kullanım hakkı"].map((item, i) => (
+                                  <li key={i} className="flex items-center text-gray-300"><div className="bg-brand-yellow/20 p-1 rounded-full mr-3 text-brand-yellow shrink-0"><Check size={16} strokeWidth={3} /></div><span className="font-bold">{item}</span></li>
+                              ))}
+                          </ul>
+                          <button className="w-full bg-brand-purple hover:bg-indigo-600 text-white font-bold py-4 rounded-xl transition-colors shadow-lg shadow-indigo-500/40 flex items-center justify-center gap-2 group cursor-pointer hover:shadow-indigo-500/60" onClick={() => alert('Mağaza linkine yönlendiriliyorsunuz...')}>
+                              <ShoppingBag size={20} />
+                              <span>Hemen Satın Al</span>
+                              <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                          </button>
+                          <div className="mt-6 flex justify-center gap-4 opacity-70">
+                              <div className="flex items-center gap-2 bg-gray-800 px-3 py-2 rounded-lg border border-gray-700">
+                                  <Smartphone size={16} /> <span className="text-xs font-bold">App Store</span>
+                              </div>
+                              <div className="flex items-center gap-2 bg-gray-800 px-3 py-2 rounded-lg border border-gray-700">
+                                  <Smartphone size={16} /> <span className="text-xs font-bold">Google Play</span>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+            </div>
+          </div>
+        );
+      };
+
+      // --- FOOTER COMPONENT ---
+      const Footer = () => {
+        const [activeModal, setActiveModal] = useState(null);
+
+        const openModal = (type) => {
+          setActiveModal(type);
+          document.body.style.overflow = 'hidden'; 
+        };
+
+        const closeModal = () => {
+          setActiveModal(null);
+          document.body.style.overflow = 'unset';
+        };
+
+        return (
+          <>
+            <footer className="bg-gray-950 border-t border-gray-900 pt-16 pb-8 relative z-40">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex flex-col lg:flex-row justify-between items-start gap-10 lg:gap-0 mb-12">
+                    <div className="flex items-center space-x-2 self-start lg:self-center shrink-0">
+                        <div className="bg-brand-yellow p-1.5 rounded-lg"><Gamepad2 className="h-5 w-5 text-brand-dark" /></div>
+                        <span className="font-display font-bold text-xl text-white">Emoji<span className="text-brand-yellow">IO</span></span>
+                    </div>
+                    <div className="flex flex-col md:flex-row gap-8 w-full lg:w-auto lg:justify-end">
+                        <div className="flex flex-col gap-3 justify-center">
+                           <a href="https://www.youtube.com/channel/UCGiMNIu8o19ZYHWlhn9RDiw" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-3 bg-gray-900/80 px-4 py-3 rounded-xl border border-gray-800 hover:border-red-600/30 transition-all cursor-pointer group w-full md:w-64 shadow-lg text-left no-underline">
+                              <div className="bg-red-600 p-2 rounded-full text-white shadow-lg shadow-red-600/20 group-hover:scale-110 transition-transform"><Youtube size={18} fill="currentColor" /></div>
+                              <div className="flex flex-col">
+                                <span className="text-white font-bold text-sm group-hover:text-red-400 transition-colors">Emoji-İo</span>
+                                <span className="text-gray-500 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">Abone Ol <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></span></span>
+                              </div>
+                           </a>
+                           <a href="#" onClick={(e) => e.preventDefault()} className="flex items-center space-x-3 bg-gray-900/80 px-4 py-3 rounded-xl border border-gray-800 hover:border-indigo-500/30 transition-all cursor-pointer group w-full md:w-64 shadow-lg text-left no-underline">
+                              <div className="bg-indigo-600 p-2 rounded-full text-white shadow-lg shadow-indigo-600/20 group-hover:scale-110 transition-transform"><Youtube size={18} fill="currentColor" /></div>
+                              <div className="flex flex-col">
+                                <span className="text-white font-bold text-sm group-hover:text-indigo-400 transition-colors">Nightblue-s Entertainment</span>
+                                <span className="text-gray-500 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">Abone Ol <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse"></span></span>
+                              </div>
+                           </a>
+                        </div>
+                        <div className="flex flex-col w-full md:w-auto max-w-md bg-gray-900/50 p-4 rounded-xl border border-gray-800">
+                            <div className="flex items-start gap-3">
+                              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-purple to-indigo-600 flex items-center justify-center shrink-0 border border-white/10 shadow-inner mt-0.5"><span className="font-bold text-white text-xs">IO</span></div>
+                              <div className="flex flex-col">
+                                  <div className="flex items-center gap-2 mb-0.5"><span className="text-[11px] font-bold text-white bg-gray-800 px-2 py-0.5 rounded-full border border-gray-700">@EmojiIO_Destek</span><span className="text-[10px] text-gray-500">Sabitlendi</span></div>
+                                  <p className="text-xs md:text-sm text-gray-300 leading-snug">Oyun hakkındaki düşüncelerinizi yorumlarda belirtmeyi unutmayın! 👋</p>
+                                  <div className="flex items-center gap-4 mt-2">
+                                      <div className="flex items-center gap-1.5 group/like cursor-pointer"><ThumbsUp size={12} className="text-gray-500 group-hover/like:text-white transition-colors" /><span className="text-[10px] text-gray-500 group-hover/like:text-white">1.2B</span></div>
+                                      <div className="flex items-center group/dislike cursor-pointer"><ThumbsDown size={12} className="text-gray-500 group-hover/dislike:text-white transition-colors" /></div>
+                                  </div>
+                              </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div className="flex flex-col md:flex-row justify-between items-center border-t border-gray-900 pt-8 text-sm text-gray-500">
+                    <p>&copy; 2025 Emoji IO. Tüm hakları saklıdır.</p>
+                    <div className="flex space-x-6 mt-4 md:mt-0">
+                        <button onClick={() => openModal('privacy')} className="hover:text-gray-300 transition-colors">Gizlilik Politikası</button>
+                        <button onClick={() => openModal('terms')} className="hover:text-gray-300 transition-colors">Kullanım Şartları</button>
+                    </div>
+                </div>
+              </div>
+              {activeModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                  <div className="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity" onClick={closeModal}></div>
+                  <div className="bg-gray-900 border border-gray-700 rounded-3xl w-full max-w-2xl relative z-10 shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-fade-in-up">
+                    <div className="p-6 border-b border-gray-800 flex justify-between items-center bg-gray-900 sticky top-0">
+                      <h3 className="text-xl md:text-2xl font-display font-bold text-white flex items-center gap-2">
+                        {activeModal === 'privacy' ? <Shield className="text-brand-purple" /> : <ScrollText className="text-brand-purple" />}
+                        {activeModal === 'privacy' ? 'Gizlilik Politikası' : 'Kullanım Şartları'}
+                      </h3>
+                      <button onClick={closeModal} className="p-2 bg-gray-800 hover:bg-gray-700 rounded-full text-gray-400 hover:text-white transition-colors"><X size={20} /></button>
+                    </div>
+                    <div className="p-6 overflow-y-auto custom-scrollbar">
+                      <div className="bg-gray-800/30 rounded-2xl p-1 border border-gray-700/30">
+                        <div className="bg-brand-dark/80 rounded-xl p-6 md:p-8 border border-gray-800 text-left relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-brand-purple/5 rounded-full blur-3xl -z-10 pointer-events-none"></div>
+                            {activeModal === 'privacy' ? (
+                                <div className="space-y-6 text-gray-300">
+                                    <p className="font-medium text-white text-lg">🔐 Emoji IO Gizlilik Politikası</p>
+                                    <div className="bg-gray-900/50 p-4 rounded-lg border border-gray-700/50">
+                                        <ul className="space-y-3">
+                                            <li className="flex items-start gap-2"><CheckCircle2 className="w-5 h-5 text-green-500 mt-0.5 shrink-0" /><span>Kişisel verileriniz toplanmamaktadır.</span></li>
+                                            <li className="flex items-start gap-2"><CheckCircle2 className="w-5 h-5 text-green-500 mt-0.5 shrink-0" /><span>Oyun verileri cihazınızda saklanır.</span></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="space-y-6 text-gray-300">
+                                     <p className="font-medium text-white text-lg">📜 Kullanım Şartları</p>
+                                     <ul className="space-y-4">
+                                        <li className="flex items-start gap-3 bg-gray-900/40 p-3 rounded-lg"><div className="w-2 h-2 mt-2 rounded-full bg-brand-purple shrink-0"></div><span>Tüm hakları Emoji IO ve Nightblue-s Entertainment'a aittir.</span></li>
+                                        <li className="flex items-start gap-3 bg-gray-900/40 p-3 rounded-lg"><div className="w-2 h-2 mt-2 rounded-full bg-brand-purple shrink-0"></div><span>Kopyalanması yasaktır.</span></li>
+                                    </ul>
+                                </div>
+                            )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="p-6 border-t border-gray-800 bg-gray-900 flex justify-end"><button onClick={closeModal} className="px-8 py-3 bg-white text-brand-dark rounded-xl font-bold hover:bg-gray-100 transition-colors shadow-lg">Kapat</button></div>
+                  </div>
+                </div>
+              )}
+            </footer>
+          </>
+        );
+      };
+
+      // --- MAIN APP COMPONENT ---
+      function App() {
+        return (
+          <div className="min-h-screen bg-brand-dark text-white font-sans selection:bg-brand-purple selection:text-white">
+            <Navbar />
+            <main>
+              <Hero />
+              <InteractiveShowcase />
+              <Modes />
+              <Features />
+              <Pricing />
+            </main>
+            <Footer />
+          </div>
+        );
+      }
+
+      const root = createRoot(document.getElementById('root'));
+      root.render(<App />);
+    </script>
+  </body>
+</html>
